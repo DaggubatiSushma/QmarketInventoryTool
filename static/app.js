@@ -78,6 +78,7 @@ function setBusy(value) {
   }
   $("#reset-department").disabled = value || !loaded || !selectedProducts().length;
   $("#export").disabled = value || !loaded || !shoppingProducts().length;
+  $("#view-order-text").disabled = value || !loaded || !shoppingProducts().length;
   document.querySelectorAll("#inventory-rows input, #order-rows input, #catalog-rows button, #department-cards button").forEach((control) => {
     control.disabled = value || control.dataset.unavailable === "true";
   });
@@ -308,7 +309,7 @@ async function changeView(nextView) {
   $("#page-subtitle").textContent = pages[view][1];
   document.title = `${pages[view][0]} | Stockroom`;
   $("#catalog-actions").hidden = view !== "departments";
-  $("#export").hidden = view !== "orders";
+  $("#order-actions").hidden = view !== "orders";
   const url = new URL(window.location.href);
   url.searchParams.set("view", view);
   window.history.replaceState(null, "", url);
@@ -405,6 +406,74 @@ $("#reset-department").addEventListener("click", async () => {
     notify(`${department.name} inventory reset. Products have been kept.`);
   } catch (error) { notify(error.message, true); }
   finally { setBusy(false); }
+});
+
+function shoppingText() {
+  const department = $("#order-department").selectedOptions[0].textContent;
+  const lines = [
+    `Shopping list - ${storeName()}`,
+    `Department: ${department}`,
+    `Prepared: ${new Date().toLocaleString()}`,
+  ];
+  for (const item of data.departments) {
+    const products = shoppingProducts().filter((product) => product.department_id === item.id);
+    if (!products.length) continue;
+    lines.push("", item.name);
+    for (const product of products) {
+      const quantity = product.order_quantity > 0 ? product.order_quantity : "Not specified";
+      lines.push(`- ${productLabel(product)} - Qty: ${quantity}${product.out_of_stock ? " (out of stock)" : ""}`);
+    }
+  }
+  lines.push("", `${shoppingProducts().length} products to buy`, "Quantities are packs/items, not product volume.");
+  return lines.join("\n");
+}
+
+$("#view-order-text").addEventListener("click", async () => {
+  if (!await ready()) return;
+  setBusy(true);
+  try {
+    await reloadData();
+    if (!shoppingProducts().length) {
+      notify("Nothing to share for this store and department.");
+      return;
+    }
+    $("#order-text").value = shoppingText();
+    $("#order-text-status").textContent = "";
+    $("#share-order-text").hidden = typeof navigator.share !== "function";
+    $("#order-text-dialog").showModal();
+  } catch (error) { notify(error.message, true); }
+  finally { setBusy(false); }
+});
+
+$("#copy-order-text").addEventListener("click", async () => {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+    await navigator.clipboard.writeText($("#order-text").value);
+    $("#order-text-status").textContent = "Copied. Paste into a message or email.";
+  } catch (error) {
+    $("#order-text").focus();
+    $("#order-text").select();
+    $("#order-text-status").textContent = "Automatic copy is unavailable. The text is selected; use your device's Copy command.";
+  }
+});
+
+$("#share-order-text").addEventListener("click", async () => {
+  const button = $("#share-order-text");
+  button.disabled = true;
+  try {
+    await navigator.share({ title: "Shopping list", text: $("#order-text").value });
+    $("#order-text-status").textContent = "List passed to your selected app.";
+  } catch (error) {
+    $("#order-text-status").textContent = error.name === "AbortError"
+      ? "Sharing canceled. You can still copy the text."
+      : "Sharing is unavailable. Use Copy text instead.";
+  } finally { button.disabled = false; }
+});
+
+$("#close-order-text").addEventListener("click", () => $("#order-text-dialog").close());
+$("#order-text-dialog").addEventListener("close", () => {
+  $("#order-text").value = "";
+  $("#order-text-status").textContent = "";
 });
 
 $("#export").addEventListener("click", async () => {

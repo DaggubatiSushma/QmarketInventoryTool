@@ -38,7 +38,10 @@
           <button id="add-department">+ Add Department</button>
           <button id="add-product" class="primary">+ Add Products</button>
         </div>
-        <button id="export" hidden>Export shopping list &darr;</button>
+        <div class="heading-actions" id="order-actions" hidden>
+          <button id="view-order-text" class="primary" disabled>View / share text</button>
+          <button id="export" disabled>Export CSV &darr;</button>
+        </div>
       </div>
       <div id="notice" class="notice" role="status" hidden></div>
 
@@ -70,6 +73,17 @@
       </section>
     </div>
   </main>
+  <dialog id="order-text-dialog" aria-labelledby="order-text-title" aria-describedby="order-text-help">
+    <div class="dialog-heading"><h2 id="order-text-title">Share shopping list</h2><button type="button" id="close-order-text" aria-label="Close shopping list">&times;</button></div>
+    <p id="order-text-help" class="muted small">A snapshot of this store and department filter. Copy or share it with your shopper; no login is needed to read the text.</p>
+    <label for="order-text" class="sr-only">Shopping list text</label>
+    <textarea id="order-text" readonly spellcheck="false"></textarea>
+    <p id="order-text-status" class="small" role="status"></p>
+    <div class="heading-actions">
+      <button type="button" id="copy-order-text">Copy text</button>
+      <button type="button" id="share-order-text" class="primary">Share</button>
+    </div>
+  </dialog>
   <dialog id="add-dialog">
     <form id="add-form">
       <div class="dialog-heading"><h2 id="dialog-title">Add product</h2><button type="button" id="close-dialog" aria-label="Close dialog">&times;</button></div>

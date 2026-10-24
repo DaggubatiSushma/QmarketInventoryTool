@@ -49,6 +49,8 @@ Localhost supports PWA development on this computer. `127.0.0.1` on your phone r
 
 **Order list:** Shows products in the selected store that are marked out of stock **or** have a quantity needed greater than zero. Use its department filter to choose one department or **All departments**. You can type quantities directly here; changes also appear in Inventory. An out-of-stock product with quantity 0 remains listed (quantity not specified). Setting quantity to 0 removes a product only if it is not marked out of stock. CSV export follows the selected store and department filter and includes the store name and product size, without descriptions. The Inventory page's department selection is independent of this filter.
 
+**Share an order:** On Order list, select a department or All departments, then tap **View / share text**. The app refreshes saved inventory and opens a text snapshot with the store, preparation time, departments, product sizes, and quantities. **Copy text** lets you paste it into messages or email; **Share** opens your device's share menu when supported. If clipboard access is blocked, select and copy the preview manually. Recipients receive plain text, not access to your inventory or a live link. Later inventory changes do not update previously sent lists. CSV export remains available.
+
 Team members can work on different products. Conflicting edits or resets are rejected rather than silently overwriting another person's work. Reload to get the current inventory if you see a conflict.
 
 ## Access and maintenance
@@ -65,5 +67,7 @@ node --check static\app.js
 node --check static\pwa.js
 node --check static\sw.js
 ```
+
+The sharing browser regression in `tests\test_order_sharing.py` runs when Playwright is available (with Chromium installed); otherwise it is skipped. It uses an isolated in-memory database, never your configured production database.
 
 When changing offline assets, bump the `stockroom-public-v...` cache name in `static\sw.js` so existing installations replace their public asset cache. The service worker is served at `/sw.js` with root scope; do not move registration to a subdirectory.

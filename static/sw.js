@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE = "stockroom-public-v1";
+const CACHE = "stockroom-public-v2";
 const PUBLIC_ASSETS = [
   "/static/offline.html",
   "/static/style.css",
