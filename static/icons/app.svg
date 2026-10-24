@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>Stockroom</title>
+  <rect width="512" height="512" fill="#3565e8"/>
+  <g fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M145 188 256 128 367 188 256 248Z"/>
+    <path d="M145 188v132l111 64 111-64V188M256 248v136"/>
+    <path d="m201 159 111 62v52"/>
+  </g>
+</svg>

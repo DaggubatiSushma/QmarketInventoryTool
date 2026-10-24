@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Stockroom Inventory",
+  "short_name": "Stockroom",
+  "description": "Manage store inventory and shopping lists.",
+  "lang": "en",
+  "start_url": "/?view=inventory",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f8fc",
+  "theme_color": "#3565e8",
+  "icons": [
+    { "src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Inventory", "url": "/?view=inventory" },
+    { "name": "Shopping list", "url": "/?view=orders" },
+    { "name": "Departments", "url": "/?view=departments" }
+  ]
+}

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="csrf-token" content="{{ session.csrf }}">
+  <title>Inventory | Stockroom</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include "_pwa_head.html" %}
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-icon">S</span> stockroom<span class="brand-dot">.</span></a>
+    <p class="nav-caption">WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      <button class="nav-item active" data-view="inventory" aria-current="page"><span aria-hidden="true">&#9638;</span> Inventory</button>
+      <button class="nav-item" data-view="orders"><span aria-hidden="true">&#9776;</span> Order list <span id="order-badge" class="nav-badge">0</span></button>
+      <button class="nav-item" data-view="departments"><span aria-hidden="true">&#9707;</span> Departments</button>
+    </nav>
+    <div class="sidebar-note"><span class="live-dot"></span> A little more organized.<p>Check your shelves.<br>Shop with confidence.</p></div>
+    <form action="/logout" method="post" id="logout-form"><input type="hidden" name="csrf" value="{{ session.csrf }}"><button class="sign-out" type="submit">Sign out &rarr;</button></form>
+  </aside>
+  <main class="workspace">
+    <header class="topbar"><span>Workspace <span class="separator">/</span> <strong id="breadcrumb">Inventory</strong></span><span class="team-label"><span class="avatar">T</span> Team workspace</span></header>
+    <div class="page-content">
+      {% include "_install.html" %}
+      <section class="store-toolbar" aria-label="Store workspace">
+        <div class="department-picker"><label for="store-select">Store</label><select id="store-select" disabled></select></div>
+        <details class="store-management" id="store-management">
+          <summary aria-label="Manage stores" title="Manage stores">&ctdot;</summary>
+          <div class="store-actions"><button id="rename-store" disabled>Rename store</button><button id="add-store" class="primary" disabled>+ Add Store</button></div>
+        </details>
+      </section>
+      <div class="page-heading">
+        <div><p class="eyebrow">KEEP IT SIMPLE</p><h1 id="page-title">Inventory</h1><p class="muted" id="page-subtitle">Choose a department, mark stock-outs, and enter what you need.</p></div>
+        <div class="heading-actions" id="catalog-actions" hidden>
+          <button id="add-department">+ Add Department</button>
+          <button id="add-product" class="primary">+ Add Products</button>
+        </div>
+        <button id="export" hidden>Export shopping list &darr;</button>
+      </div>
+      <div id="notice" class="notice" role="status" hidden></div>
+
+      <section id="inventory-panel" class="panel">
+        <div class="panel-heading">
+          <div class="department-picker"><label for="inventory-department">Department</label><select id="inventory-department"><option value="">Select a department</option></select></div>
+          <button id="reset-department" class="danger" disabled>Reset department</button>
+        </div>
+        <div class="table-scroll"><table id="inventory-table" hidden><thead><tr><th>Product</th><th>Size</th><th>Out of stock</th><th>Qty needed</th></tr></thead><tbody id="inventory-rows"></tbody></table></div>
+        <div id="inventory-empty" class="empty-state"><span class="empty-icon" aria-hidden="true">&#9638;</span><h3>Select a department</h3><p class="muted">Its products will appear here. Add products on the Departments page.</p></div>
+        <footer class="panel-footer"><span id="save-state" role="status">Changes save automatically.</span><span>Qty needed = number of packs or items to buy.</span></footer>
+      </section>
+
+      <section id="departments-panel" hidden>
+        <div class="panel catalog-departments"><div class="panel-heading"><h2>Departments</h2></div><div id="department-cards" class="department-cards"></div></div>
+        <div class="panel">
+          <div class="panel-heading"><h2>Product information</h2><select id="catalog-department" aria-label="Filter product information by department"><option value="">All departments</option></select></div>
+          <div class="table-scroll"><table id="catalog-table" aria-label="Product information"><thead><tr><th>Product</th><th>Department</th><th>Size</th><th>Actions</th></tr></thead><tbody id="catalog-rows"></tbody></table></div>
+          <div id="catalog-empty" class="empty-state" hidden><h3>No products yet</h3><p class="muted">Add a product name and its size for this store.</p></div>
+        </div>
+      </section>
+
+      <section id="orders-panel" class="panel" hidden>
+        <div class="panel-heading"><div><h2>Your shopping list</h2><p class="small muted">For this store. Quantities save automatically.</p></div><span id="shopping-count" class="muted small"></span></div>
+        <div class="order-filters department-picker"><label for="order-department">Department</label><select id="order-department"><option value="">All departments</option></select></div>
+        <div class="table-scroll"><table id="orders-table"><thead><tr><th>Department</th><th>Product</th><th>Size</th><th>Qty needed</th></tr></thead><tbody id="order-rows"></tbody></table></div>
+        <div id="orders-empty" class="empty-state" hidden><span class="empty-icon" aria-hidden="true">&#9776;</span><h3>Nothing to buy right now</h3><p class="muted">Mark a product out of stock or enter a quantity on the Inventory page.</p></div>
+        <footer class="panel-footer"><span id="order-save-state" role="status">Changes save automatically.</span><span>0 means quantity not specified for an out-of-stock product.</span></footer>
+      </section>
+    </div>
+  </main>
+  <dialog id="add-dialog">
+    <form id="add-form">
+      <div class="dialog-heading"><h2 id="dialog-title">Add product</h2><button type="button" id="close-dialog" aria-label="Close dialog">&times;</button></div>
+      <label for="item-name">Name</label><input id="item-name" required maxlength="120" autocomplete="off">
+      <div id="product-fields">
+        <label for="item-department">Department</label><select id="item-department"></select>
+        <label for="item-size">Product size / quantity</label><input id="item-size" maxlength="80" placeholder="e.g. 355ml, 473ml, 1 ltr" autocomplete="off">
+      </div>
+      <p id="dialog-error" class="error" role="alert" hidden></p>
+      <button type="submit" class="primary full-width" id="create-item">Add product</button>
+    </form>
+  </dialog>
+</body>
+</html>
