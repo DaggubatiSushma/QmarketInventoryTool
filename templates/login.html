@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>Sign in | Stockroom</title>
+  <title>Sign in | Qmarket Stockroom</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   {% include "_pwa_head.html" %}
 </head>
 <body class="login-page">
   <main class="login-card">
-    <span class="brand-icon" aria-hidden="true">S</span>
+    <span class="brand-icon" aria-hidden="true">Q</span>
     <p class="eyebrow">YOUR SHELVES, SORTED</p>
-    <h1>Welcome to Stockroom.</h1>
+    <h1>Welcome to<br>Qmarket Stockroom.</h1>
     <p class="muted">A simple space for your products, inventory, and shopping list.</p>
     <form method="post">
       <input type="hidden" name="csrf" value="{{ session.csrf }}">

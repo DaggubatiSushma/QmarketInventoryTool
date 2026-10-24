@@ -4,18 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="csrf-token" content="{{ session.csrf }}">
-  <title>Inventory | Stockroom</title>
+  <title>Inventory | Qmarket Stockroom</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   {% include "_pwa_head.html" %}
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 <body>
   <aside class="sidebar">
-    <a class="brand" href="/"><span class="brand-icon">S</span> stockroom<span class="brand-dot">.</span></a>
+    <a class="brand" href="/" aria-label="Qmarket Stockroom"><span class="brand-icon" aria-hidden="true">Q</span><span class="brand-name">Qmarket<span class="brand-subtitle">Stockroom</span></span></a>
     <p class="nav-caption">WORKSPACE</p>
     <nav aria-label="Main navigation">
       <button class="nav-item active" data-view="inventory" aria-current="page"><span aria-hidden="true">&#9638;</span> Inventory</button>
       <button class="nav-item" data-view="orders"><span aria-hidden="true">&#9776;</span> Order list <span id="order-badge" class="nav-badge">0</span></button>
+      <button class="nav-item" data-view="combined"><span aria-hidden="true">&#9636;</span> All stores</button>
       <button class="nav-item" data-view="departments"><span aria-hidden="true">&#9707;</span> Departments</button>
     </nav>
     <div class="sidebar-note"><span class="live-dot"></span> A little more organized.<p>Check your shelves.<br>Shop with confidence.</p></div>
@@ -32,30 +33,72 @@
           <div class="store-actions"><button id="rename-store" disabled>Rename store</button><button id="add-store" class="primary" disabled>+ Add Store</button></div>
         </details>
       </section>
+      <div id="all-stores-context" class="store-toolbar" hidden>All stores combined &mdash; quantities are read-only here.</div>
       <div class="page-heading">
         <div><p class="eyebrow">KEEP IT SIMPLE</p><h1 id="page-title">Inventory</h1><p class="muted" id="page-subtitle">Choose a department, mark stock-outs, and enter what you need.</p></div>
         <div class="heading-actions" id="catalog-actions" hidden>
+          <button id="arrange-shelves" aria-pressed="false">Arrange shelf order</button>
           <button id="add-department">+ Add Department</button>
           <button id="add-product" class="primary">+ Add Products</button>
         </div>
         <div class="heading-actions" id="order-actions" hidden>
-          <button id="view-order-text" class="primary" disabled>View / share text</button>
-          <button id="export" disabled>Export CSV &darr;</button>
+          <button id="shopping-mode" aria-pressed="false">Shopping mode: off</button>
+          <button id="refresh-orders">Refresh</button>
+          <button id="view-order-text" class="primary" disabled>Send list</button>
         </div>
       </div>
+      <p id="inventory-freshness" class="small muted" role="status"></p>
+      <p id="shopping-progress" class="shopping-progress" role="status" hidden></p>
       <div id="notice" class="notice" role="status" hidden></div>
+      <div id="navigation-storage-notice" class="notice" role="status" hidden></div>
+      <div id="undo-banner" class="undo-banner" hidden>
+        <span id="undo-message" role="status"></span>
+        <button id="undo-action" disabled>Undo</button>
+        <span class="small muted">Available for 10 minutes. Newer edits are never overwritten.</span>
+      </div>
 
       <section id="inventory-panel" class="panel">
         <div class="panel-heading">
           <div class="department-picker"><label for="inventory-department">Department</label><select id="inventory-department"><option value="">Select a department</option></select></div>
           <button id="reset-department" class="danger" disabled>Reset department</button>
         </div>
-        <div class="table-scroll"><table id="inventory-table" hidden><thead><tr><th>Product</th><th>Size</th><th>Out of stock</th><th>Qty needed</th></tr></thead><tbody id="inventory-rows"></tbody></table></div>
+        <div class="inventory-navigation">
+          <div class="department-navigation" role="group" aria-label="Browse departments">
+            <button id="previous-department" disabled>&larr; Previous department</button>
+            <button id="next-department" disabled>Next department &rarr;</button>
+          </div>
+          <div class="inventory-view-switch" role="group" aria-label="Inventory view">
+            <button id="list-view" aria-pressed="true" disabled>List</button>
+            <button id="flashcard-view" aria-pressed="false" disabled>Flashcards</button>
+          </div>
+        </div>
+        <div class="inventory-check-tools">
+          <label for="inventory-search">Find a product in this department</label>
+          <input id="inventory-search" type="search" placeholder="Search by product name or size" autocomplete="off" disabled>
+          <div class="check-summary">
+            <span id="department-progress" role="status">Select a department to start checking.</span>
+            <button id="refresh-inventory" disabled>Refresh</button>
+            <button id="start-check" disabled>Start new check</button>
+          </div>
+          <progress id="department-progress-bar" max="1" value="0" aria-label="Department checking progress" hidden></progress>
+          <p class="small muted">Shared team progress. Saving a quantity or stock status marks the product checked. Browsing alone does not.</p>
+        </div>
+        <div class="table-scroll"><table id="inventory-table" hidden><thead><tr><th>Product</th><th>Size</th><th>Out of stock</th><th>Qty needed</th><th>Check</th></tr></thead><tbody id="inventory-rows"></tbody></table></div>
+        <section id="flashcards" aria-label="Product flashcards" hidden>
+          <p id="card-progress" class="muted small" role="status"></p>
+          <div id="product-card" tabindex="0" aria-label="Product card. Swipe or use left and right arrow keys to browse."></div>
+          <div class="card-navigation">
+            <button id="previous-product" disabled>&larr; Previous product</button>
+            <button id="next-product" disabled>Next product &rarr;</button>
+          </div>
+          <p id="card-end" class="muted small" hidden>Last product in this department. Use Next department to continue.</p>
+        </section>
         <div id="inventory-empty" class="empty-state"><span class="empty-icon" aria-hidden="true">&#9638;</span><h3>Select a department</h3><p class="muted">Its products will appear here. Add products on the Departments page.</p></div>
         <footer class="panel-footer"><span id="save-state" role="status">Changes save automatically.</span><span>Qty needed = number of packs or items to buy.</span></footer>
       </section>
 
       <section id="departments-panel" hidden>
+        <p id="shelf-order-help" class="notice" hidden>Use Move up / Move down to match your store's shelves. Changes are shared with the team and apply to department navigation, inventory, flashcards, and this store's shopping list.</p>
         <div class="panel catalog-departments"><div class="panel-heading"><h2>Departments</h2></div><div id="department-cards" class="department-cards"></div></div>
         <div class="panel">
           <div class="panel-heading"><h2>Product information</h2><select id="catalog-department" aria-label="Filter product information by department"><option value="">All departments</option></select></div>
@@ -64,30 +107,49 @@
         </div>
       </section>
 
+      <section id="combined-panel" class="panel" hidden>
+        <div class="panel-heading"><div><h2>Combined shopping list</h2><p class="small muted">Matching product names and sizes are added together across all stores.</p></div><button id="refresh-combined">Refresh</button></div>
+        <div class="order-filters department-picker"><label for="combined-department">Department</label><select id="combined-department"><option value="">All departments</option></select></div>
+        <div class="table-scroll"><table id="combined-table"><thead><tr><th>Product</th><th>Size</th><th>Total qty needed</th><th>Stores</th><th class="shopping-column" hidden>Picked up</th></tr></thead><tbody id="combined-rows"></tbody></table></div>
+        <div id="combined-empty" class="empty-state" hidden><h3>Nothing to buy across all stores</h3></div>
+        <footer class="panel-footer">Edit quantities in each store's Inventory or Order list. Unspecified quantities are not counted as zero demand.</footer>
+      </section>
       <section id="orders-panel" class="panel" hidden>
         <div class="panel-heading"><div><h2>Your shopping list</h2><p class="small muted">For this store. Quantities save automatically.</p></div><span id="shopping-count" class="muted small"></span></div>
         <div class="order-filters department-picker"><label for="order-department">Department</label><select id="order-department"><option value="">All departments</option></select></div>
-        <div class="table-scroll"><table id="orders-table"><thead><tr><th>Department</th><th>Product</th><th>Size</th><th>Qty needed</th></tr></thead><tbody id="order-rows"></tbody></table></div>
+        <div class="table-scroll"><table id="orders-table"><thead><tr><th>Department</th><th>Product</th><th>Size</th><th>Qty needed</th><th>Actions</th><th class="shopping-column" hidden>Picked up</th></tr></thead><tbody id="order-rows"></tbody></table></div>
         <div id="orders-empty" class="empty-state" hidden><span class="empty-icon" aria-hidden="true">&#9776;</span><h3>Nothing to buy right now</h3><p class="muted">Mark a product out of stock or enter a quantity on the Inventory page.</p></div>
         <footer class="panel-footer"><span id="order-save-state" role="status">Changes save automatically.</span><span>0 means quantity not specified for an out-of-stock product.</span></footer>
       </section>
     </div>
   </main>
   <dialog id="order-text-dialog" aria-labelledby="order-text-title" aria-describedby="order-text-help">
-    <div class="dialog-heading"><h2 id="order-text-title">Share shopping list</h2><button type="button" id="close-order-text" aria-label="Close shopping list">&times;</button></div>
+    <div class="dialog-heading"><h2 id="order-text-title">Send list</h2><button type="button" id="close-order-text" aria-label="Close shopping list">&times;</button></div>
     <p id="order-text-help" class="muted small">A snapshot of this store and department filter. Copy or share it with your shopper; no login is needed to read the text.</p>
+    <section id="missing-quantities" class="missing-quantities" role="alert" hidden>
+      <strong>Some products still need a quantity</strong>
+      <ul id="missing-quantity-items"></ul>
+      <p class="small">These will be sent as unspecified, not zero. Go back to enter quantities, or send the list as shown.</p>
+      <button type="button" id="review-quantities">Back to list</button>
+    </section>
     <label for="order-text" class="sr-only">Shopping list text</label>
     <textarea id="order-text" readonly spellcheck="false"></textarea>
     <p id="order-text-status" class="small" role="status"></p>
     <div class="heading-actions">
       <button type="button" id="copy-order-text">Copy text</button>
       <button type="button" id="share-order-text" class="primary">Share</button>
+      <button type="button" id="export" disabled>Export CSV &darr;</button>
     </div>
   </dialog>
   <dialog id="add-dialog">
     <form id="add-form">
       <div class="dialog-heading"><h2 id="dialog-title">Add product</h2><button type="button" id="close-dialog" aria-label="Close dialog">&times;</button></div>
       <label for="item-name">Name</label><input id="item-name" required maxlength="120" autocomplete="off">
+      <div id="store-fields" hidden>
+        <label for="copy-source">Copy catalog from (optional)</label>
+        <select id="copy-source"><option value="">Start with an empty catalog</option></select>
+        <p class="small muted">Copies departments, product names, sizes, and shelf order to the new store. Inventory, check marks, and shopping progress start empty and remain independent.</p>
+      </div>
       <div id="product-fields">
         <label for="item-department">Department</label><select id="item-department"></select>
         <label for="item-size">Product size / quantity</label><input id="item-size" maxlength="80" placeholder="e.g. 355ml, 473ml, 1 ltr" autocomplete="off">

@@ -18,14 +18,31 @@ button, a { touch-action: manipulation; }
 #order-text { width: 100%; height: 40vh; min-height: 180px; padding: 12px; border: 1px solid #dde4ef; border-radius: 10px; font: 16px/1.6 monospace; color: #27354b; resize: vertical; }
 #order-text:focus { outline: 2px solid #88a8ff; outline-offset: 2px; }
 #order-actions { flex-wrap: wrap; }
+.store-toolbar { position: sticky; top: 0; z-index: 18; box-shadow: 0 5px 18px #20376312; }
+#all-stores-context { display: block; font-size: 14px; }
+html { scroll-padding-top: 110px; }
+.inventory-navigation { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding: 0 23px 20px; }
+.department-navigation, .inventory-view-switch, .card-navigation { display: flex; gap: 8px; }
+.inventory-view-switch button[aria-pressed=true] { background: #edf2ff; color: #3565e8; border-color: #88a8ff; }
+#flashcards { padding: 0 23px 23px; max-width: 640px; margin: auto; }
+#product-card { border: 1px solid #dfe5ef; border-radius: 16px; padding: 28px; background: #fcfdff; touch-action: pan-y; overflow-wrap: anywhere; }
+#product-card h2 { font-size: 24px; margin-bottom: 12px; }
+#product-card input[type=checkbox] { width: 24px; height: 24px; min-height: 0; accent-color: #3565e8; }
+#product-card .stock-toggle { min-height: 48px; }
+.card-quantity { display: grid; gap: 12px; margin-top: 24px; font-weight: 600; }
+.card-quantity input { width: 100%; min-height: 48px; font-size: 18px; }
+.card-navigation { margin: 16px 0; }
+.card-navigation button { flex: 1; }
+#order-text-dialog .heading-actions { display: flex; flex-wrap: wrap; }
+#order-text-dialog .heading-actions button { flex: 1; }
 
 @media (max-width: 800px) {
   :root { font-size: 15px; }
-  html { scroll-padding-top: 80px; scroll-padding-bottom: 110px; }
+  html { scroll-padding-top: calc(160px + env(safe-area-inset-top)); scroll-padding-bottom: 110px; }
   body { padding-top: calc(64px + env(safe-area-inset-top)); }
   button { min-width: 44px; min-height: 44px; }
   input, select, dialog input, dialog select { font-size: 16px; min-height: 48px; border-radius: 10px; }
-  input:focus, select:focus { scroll-margin: 90px 0 120px; }
+  input:focus, select:focus { scroll-margin: 160px 0 120px; }
   h1 { font-size: 28px; letter-spacing: -.8px; }
   h2 { font-size: 18px; }
   .small { font-size: 12px; }
@@ -34,7 +51,7 @@ button, a { touch-action: manipulation; }
   .sidebar > form { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); display: block; }
   .sidebar .sign-out { min-height: 44px; margin: 0; font-size: 12px; padding: 8px; }
   .sidebar .nav-caption, .sidebar .sidebar-note { display: none; }
-  .sidebar nav { position: fixed; z-index: 30; inset: auto 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 7px max(12px, env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background: #fff; border-top: 1px solid #e4eaf5; box-shadow: 0 -5px 25px #20376308; }
+  .sidebar nav { position: fixed; z-index: 30; inset: auto 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 7px max(12px, env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); background: #fff; border-top: 1px solid #e4eaf5; box-shadow: 0 -5px 25px #20376308; }
   .sidebar .nav-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 58px; margin: 0; padding: 6px 3px; border-radius: 12px; font-size: 11px; }
   .sidebar .nav-item > span:first-child { display: block; width: auto; font-size: 23px; line-height: 26px; }
   .sidebar .nav-item.active { background: #edf2ff; color: #3565e8; }
@@ -44,7 +61,14 @@ button, a { touch-action: manipulation; }
   .page-content { padding: 16px max(16px, env(safe-area-inset-right)) calc(108px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
   .install-banner { font-size: 11px; margin-bottom: 12px; gap: 8px; }
   .install-banner button { font-size: 12px; padding: 8px 12px; }
-  .store-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) 44px; padding: 12px; gap: 8px; margin-bottom: 24px; border-radius: 14px; }
+  .store-toolbar { top: calc(64px + env(safe-area-inset-top)); display: grid; grid-template-columns: minmax(0, 1fr) 44px; padding: 12px; gap: 8px; margin-bottom: 24px; border-radius: 14px; }
+  .inventory-navigation { padding: 0 16px 16px; flex-direction: column; }
+  .department-navigation, .inventory-view-switch { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .department-navigation button, .card-navigation button { font-size: 12px; padding: 8px; }
+  #flashcards { padding: 0 16px 16px; }
+  #product-card { padding: 20px; }
+  #order-actions { display: block; }
+  #view-order-text { width: 100%; }
   .store-toolbar .department-picker { width: 100%; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; }
   .store-toolbar .department-picker select { min-width: 0; width: 100%; max-width: 100%; }
   .store-management .store-actions { width: 190px; grid-template-columns: 1fr; gap: 8px; }
@@ -87,9 +111,14 @@ button, a { touch-action: manipulation; }
   .catalog-row-actions { gap: 8px; }
   .catalog-row-actions button { min-height: 44px; flex: 1; font-size: 13px; }
   #order-rows td:nth-child(2) { grid-column: 1 / -1; grid-row: 1; }
-  #order-rows td:last-child { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #e8edf4; padding-top: 12px; }
-  #order-rows td:last-child::before { margin: 0; font-size: 11px; }
+  #order-rows td:nth-child(4) { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #e8edf4; padding-top: 12px; }
+  #order-rows td:nth-child(4)::before { margin: 0; font-size: 11px; }
+  #order-rows td:last-child { grid-column: 1 / -1; }
+  #order-rows td:last-child::before { display: none; }
+  #order-rows td:last-child button { width: 100%; }
   #order-rows .quantity-input { width: 100px; }
+  #combined-rows td:first-child, #combined-rows td:last-child { grid-column: 1 / -1; }
+  #combined-rows td:first-child::before { display: none; }
   .department-cards { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 0 12px 16px; }
   .department-card { padding: 16px; background: #fcfdff; }
   .department-card h3 { font-size: 16px; }

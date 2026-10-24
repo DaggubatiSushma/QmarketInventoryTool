@@ -1,10 +1,11 @@
 "use strict";
 
-const CACHE = "stockroom-public-v2";
+const CACHE = "stockroom-public-v8";
 const PUBLIC_ASSETS = [
   "/static/offline.html",
   "/static/style.css",
   "/static/mobile.css",
+  "/static/theme.css",
   "/static/icons/app.svg",
   "/static/icons/icon-192.png",
   "/static/icons/icon-512.png",
@@ -30,7 +31,7 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(async () =>
       await caches.match("/static/offline.html") ||
-      new Response("You're offline. Reconnect to open Stockroom.", {
+      new Response("You're offline. Reconnect to open Qmarket Stockroom.", {
         status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" },
       })
     ));

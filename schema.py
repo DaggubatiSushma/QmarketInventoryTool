@@ -1,6 +1,6 @@
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
-from sqlalchemy import Column, Integer, MetaData, String, Table, inspect, select
+from sqlalchemy import Boolean, Column, DateTime, Integer, MetaData, String, Table, false, inspect, select
 
 
 def upgrade_stores(engine):
@@ -56,3 +56,37 @@ def upgrade_catalog(engine):
             if old_unique is not None:
                 batch.drop_constraint(old_unique["name"] or "uq_product_department_id_name", type_="unique")
                 batch.create_unique_constraint("uq_product_department_name_size", ["department_id", "name", "size"])
+
+
+def upgrade_stock_checks(engine):
+    """Default existing stock rows to unchecked without changing their revisions."""
+    with engine.begin() as connection:
+        columns = {column["name"] for column in inspect(connection).get_columns("stock_state")}
+        if "checked" not in columns:
+            operations = Operations(MigrationContext.configure(connection))
+            operations.add_column(
+                "stock_state", Column("checked", Boolean(), nullable=False, server_default=false()))
+
+
+def upgrade_shopping(engine):
+    """Add durable shopping metadata without inventing inventory update dates."""
+    additions = {
+        "store": [
+            Column("catalog_revision", Integer(), nullable=False, server_default="1"),
+            Column("inventory_updated_at", DateTime(), nullable=True),
+            Column("departments_ordered", Boolean(), nullable=False, server_default=false()),
+        ],
+        "department": [
+            Column("position", Integer(), nullable=False, server_default="0"),
+            Column("products_ordered", Boolean(), nullable=False, server_default=false()),
+        ],
+        "product": [Column("position", Integer(), nullable=False, server_default="0")],
+        "stock_state": [Column("picked_up", Boolean(), nullable=False, server_default=false())],
+    }
+    with engine.begin() as connection:
+        operations = Operations(MigrationContext.configure(connection))
+        for table, columns in additions.items():
+            existing = {column["name"] for column in inspect(connection).get_columns(table)}
+            for column in columns:
+                if column.name not in existing:
+                    operations.add_column(table, column)
